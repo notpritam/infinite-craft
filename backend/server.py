@@ -28,7 +28,7 @@ class JSONEncoder(json.JSONEncoder):
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ.get('DB_NAME', 'infinite_craft')]
+db = client[os.environ.get('DB_NAME', 'test_database')]
 
 app = FastAPI()
 
