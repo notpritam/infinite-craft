@@ -153,5 +153,36 @@ def main():
     print(f"\n📊 Tests passed: {tester.tests_passed}/{tester.tests_run}")
     return 0 if tester.tests_passed == tester.tests_run else 1
 
+@pytest.fixture
+def tester():
+    backend_url = "https://infinite-craft-backend-7tk2rvprxa-uc.a.run.app"
+    return InfiniteCraftTester(backend_url)
+
+def test_infinite_craft_api(tester):
+    """Test the complete Infinite Craft API flow"""
+    
+    # Test 1: Get base elements
+    base_elements = tester.test_base_elements()
+    assert base_elements, "Failed to get base elements"
+
+    # Test 2: Get discovered elements (should be same as base initially)
+    discovered = tester.test_discovered_elements()
+    assert discovered, "Failed to get discovered elements"
+
+    # Test 3: Combine first two base elements
+    if len(base_elements) >= 2:
+        result = tester.test_combine_elements(
+            base_elements[0]['id'],
+            base_elements[1]['id']
+        )
+        assert result, "Failed to combine elements"
+
+    # Test 4: Get progress after combination
+    progress = tester.test_get_progress()
+    assert progress, "Failed to get user progress"
+
+    # Test 5: Reset progress
+    assert tester.test_reset_progress(), "Failed to reset progress"
+
 if __name__ == "__main__":
-    pytest.main([__file__])
+    pytest.main(["-v", __file__])
