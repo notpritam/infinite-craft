@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import "./App.css";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const USER_ID = "default"; // For MVP, we'll use a default user ID
 
 function App() {
   const [baseElements, setBaseElements] = useState([]);
