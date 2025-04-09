@@ -5,7 +5,7 @@ from datetime import datetime
 
 class InfiniteCraftAPITester(unittest.TestCase):
     def setUp(self):
-        self.base_url = "https://infinite-craft-backend-ashy.vercel.app"
+        self.base_url = "https://fa962508-b130-4073-82b1-b55d36e20a69.preview.emergentagent.com"
         self.user_id = f"test_user_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         
     def test_01_base_elements(self):
