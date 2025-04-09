@@ -284,18 +284,23 @@ async def combine_elements(combination: CombinationRequest, user_id: str = "defa
 @app.post("/api/user/reset")
 async def reset_user_progress(user_id: str = "default"):
     """Reset a user's discoveries back to base elements only"""
-    # Get base elements
-    base_elements = await db.base_elements.find().to_list(length=100)
-    base_element_ids = [elem["id"] for elem in base_elements]
-    
-    # Update or create user progress
-    await db.user_progress.update_one(
-        {"user_id": user_id},
-        {"$set": {"discovered_elements": base_element_ids}},
-        upsert=True
-    )
-    
-    return {"message": "User progress reset to base elements"}
+    try:
+        # Get base elements
+        base_elements = await db.base_elements.find().to_list(length=100)
+        base_element_ids = [elem["id"] for elem in base_elements]
+        
+        # Update or create user progress
+        await db.user_progress.update_one(
+            {"user_id": user_id},
+            {"$set": {"discovered_elements": base_element_ids}},
+            upsert=True
+        )
+        
+        logger.info(f"Reset user progress for {user_id} to {len(base_element_ids)} base elements")
+        return {"message": "User progress reset to base elements"}
+    except Exception as e:
+        logger.error(f"Error resetting user progress: {str(e)}")
+        return {"error": str(e)}
 
 @app.get("/api/user/progress")
 async def get_user_progress(user_id: str = "default"):
