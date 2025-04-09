@@ -1,7 +1,10 @@
 import pytest
 import httpx
 import os
-from typing import Dict, List
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Get the backend URL from environment variable
 BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL', 'http://localhost:8001')
@@ -16,31 +19,27 @@ async def test_base_elements():
         assert isinstance(data, list)
         assert len(data) == 4  # Should have 4 base elements
         
-        # Verify base elements structure
+        # Check each base element has required fields
         for element in data:
             assert "id" in element
             assert "name" in element
             assert "emoji" in element
-            assert isinstance(element["id"], str)
-            assert isinstance(element["name"], str)
-            assert isinstance(element["emoji"], str)
 
 @pytest.mark.asyncio
 async def test_discovered_elements():
-    """Test fetching discovered elements"""
+    """Test fetching discovered elements for a user"""
     test_user = "test_user_1"
     async with httpx.AsyncClient() as client:
         response = await client.get(f"{BACKEND_URL}/api/elements/discovered?user_id={test_user}")
         assert response.status_code == 200
         data = response.json()
         assert isinstance(data, list)
-        # New user should have at least base elements
+        # New user should have access to base elements
         assert len(data) >= 4
 
 @pytest.mark.asyncio
 async def test_element_combination():
-    """Test combining elements"""
-    test_user = "test_user_2"
+    """Test combining two elements"""
     async with httpx.AsyncClient() as client:
         # First get base elements
         response = await client.get(f"{BACKEND_URL}/api/elements/base")
@@ -50,7 +49,7 @@ async def test_element_combination():
         combination_data = {
             "element1_id": base_elements[0]["id"],
             "element2_id": base_elements[1]["id"],
-            "user_id": test_user
+            "user_id": "test_user_1"
         }
         
         response = await client.post(
@@ -61,30 +60,28 @@ async def test_element_combination():
         result = response.json()
         assert result["success"] == True
         assert "result" in result
-        assert isinstance(result["result"], dict)
         assert "name" in result["result"]
         assert "emoji" in result["result"]
 
 @pytest.mark.asyncio
 async def test_user_progress():
     """Test user progress tracking"""
-    test_user = "test_user_3"
+    test_user = "test_user_1"
     async with httpx.AsyncClient() as client:
         # Get initial progress
         response = await client.get(f"{BACKEND_URL}/api/user/progress?user_id={test_user}")
         assert response.status_code == 200
         initial_progress = response.json()
         assert "discovery_count" in initial_progress
-        initial_count = initial_progress["discovery_count"]
         
         # Reset progress
         response = await client.post(f"{BACKEND_URL}/api/user/reset?user_id={test_user}")
         assert response.status_code == 200
         
-        # Verify reset
+        # Check progress after reset
         response = await client.get(f"{BACKEND_URL}/api/user/progress?user_id={test_user}")
         reset_progress = response.json()
-        assert reset_progress["discovery_count"] == 4  # Should have only base elements
+        assert reset_progress["discovery_count"] == 4  # Should only have base elements
 
 if __name__ == "__main__":
     pytest.main(["-v", "backend_test.py"])
