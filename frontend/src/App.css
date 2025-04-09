@@ -233,7 +233,9 @@ body {
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
   user-select: none;
-  max-width: 120px;
+  width: fit-content;
+  min-width: 80px;
+  max-width: 160px;
   white-space: nowrap;
   overflow: hidden;
 }
