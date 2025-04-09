@@ -154,7 +154,25 @@ function App() {
       }
       const data = await response.json();
       console.log("Discovered elements data:", data);
-      setDiscoveredElements(data);
+      
+      // Make sure to update state with the new data
+      setDiscoveredElements(prevElements => {
+        // If the lengths are different, or we're fetching for the first time
+        if (!prevElements || prevElements.length !== data.length) {
+          return data;
+        }
+        
+        // Check if there are any new elements
+        const existingIds = new Set(prevElements.map(elem => elem.id));
+        const newElements = data.filter(elem => !existingIds.has(elem.id));
+        
+        if (newElements.length > 0) {
+          console.log("New elements found:", newElements);
+          return data;  // Replace with completely fresh data
+        }
+        
+        return prevElements;  // No changes needed
+      });
     } catch (error) {
       console.error("Error fetching discovered elements:", error);
       // Set base elements as fallback if we can't get discovered elements
