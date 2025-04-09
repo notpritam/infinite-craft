@@ -252,16 +252,16 @@ Create combinations that can lead to further interesting combinations"""
         # Parse the response to extract the result
         result_text = response_data['choices'][0]['message']['content'].strip()
         
-        # Extract emoji and name using regex
-        match = re.match(r"(.*?)\s+([\p{Emoji}]+)$", result_text, re.UNICODE)
-        
-        if match:
-            result_name = match.group(1)
-            result_emoji = match.group(2)
+        # Simple parsing - split by the last space
+        # The emoji is typically the last element in the string
+        parts = result_text.split()
+        if len(parts) > 1:
+            result_emoji = parts[-1]
+            result_name = " ".join(parts[:-1])
         else:
-            # If regex fails, use the first character as emoji and rest as name
-            result_emoji = result_text[0]
-            result_name = result_text[1:].strip()
+            # Fallback if we can't parse properly
+            result_emoji = "🔮"
+            result_name = result_text
         
         # Create new element
         result_element = await get_element_by_name_emoji(result_name, result_emoji)
