@@ -571,60 +571,26 @@ function App() {
         </div>
 
         <div className="sidebar">
-          <div className="sidebar-tabs">
-            <button 
-              className={`tab-button ${activeTab === 'base' ? 'active' : ''}`}
-              onClick={() => setActiveTab('base')}
-            >
-              Base Elements
-            </button>
-            <button 
-              className={`tab-button ${activeTab === 'discoveries' ? 'active' : ''}`}
-              onClick={() => setActiveTab('discoveries')}
-            >
-              Discoveries
-            </button>
+          <div className="sidebar-header">
+            <h3>Elements</h3>
           </div>
 
           <div className="sidebar-content">
-            {activeTab === 'base' && (
-              <div className="element-grid">
-                {baseElements.map((element) => (
-                  <div
-                    key={element.id}
-                    className="element-card"
-                    onMouseDown={(e) => handleDragStart(element, e)}
-                    onTouchStart={(e) => handleDragStart(element, e)}
-                    onClick={() => addElementToWorkspace(element)}
-                  >
-                    <span className="element-emoji">{element.emoji}</span>
-                    <span className="element-name">{element.name}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {activeTab === 'discoveries' && (
-              <div className="element-grid">
-                {discoveredElements
-                  .filter(
-                    (element) =>
-                      !baseElements.some((baseEl) => baseEl.id === element.id)
-                  )
-                  .map((element) => (
-                    <div
-                      key={element.id}
-                      className="element-card"
-                      onMouseDown={(e) => handleDragStart(element, e)}
-                      onTouchStart={(e) => handleDragStart(element, e)}
-                      onClick={() => addElementToWorkspace(element)}
-                    >
-                      <span className="element-emoji">{element.emoji}</span>
-                      <span className="element-name">{element.name}</span>
-                    </div>
-                  ))}
-              </div>
-            )}
+            <div className="element-grid">
+              {/* Display all elements in a single list */}
+              {discoveredElements.map((element) => (
+                <div
+                  key={element.id}
+                  className="element-card"
+                  onMouseDown={(e) => handleDragStart(element, e)}
+                  onTouchStart={(e) => handleDragStart(element, e)}
+                  onClick={() => addElementToWorkspace(element)}
+                >
+                  <span className="element-emoji">{element.emoji}</span>
+                  <span className="element-name">{element.name}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
