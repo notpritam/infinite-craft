@@ -197,37 +197,16 @@ body {
   border-left: 1px solid #eaeaea;
 }
 
-.sidebar-tabs {
-  display: flex;
-  border-bottom: 1px solid #eaeaea;
+.sidebar-header {
   margin-bottom: 15px;
+  border-bottom: 1px solid #eaeaea;
+  padding-bottom: 10px;
 }
 
-.tab-button {
-  flex: 1;
-  background: none;
-  border: none;
-  padding: 10px 5px;
-  font-size: 14px;
-  color: #666;
-  cursor: pointer;
-  position: relative;
-  transition: color 0.2s ease;
-}
-
-.tab-button.active {
+.sidebar-header h3 {
+  font-size: 16px;
   color: #333;
-  font-weight: 500;
-}
-
-.tab-button.active::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background-color: #4caf50;
+  font-weight: 600;
 }
 
 .sidebar-content {
