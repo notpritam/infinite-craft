@@ -69,8 +69,9 @@ function App() {
 
   const fetchDiscoveredElements = async () => {
     try {
+      const userId = localStorage.getItem("infiniteCraftUsername") || "default";
       const response = await fetch(
-        `${BACKEND_URL}/api/elements/discovered?user_id=${USER_ID}`
+        `${BACKEND_URL}/api/elements/discovered?user_id=${userId}`
       );
       const data = await response.json();
       setDiscoveredElements(data);
@@ -81,8 +82,9 @@ function App() {
 
   const fetchUserProgress = async () => {
     try {
+      const userId = localStorage.getItem("infiniteCraftUsername") || "default";
       const response = await fetch(
-        `${BACKEND_URL}/api/user/progress?user_id=${USER_ID}`
+        `${BACKEND_URL}/api/user/progress?user_id=${userId}`
       );
       const data = await response.json();
       setDiscoveryCount(data.discovery_count);
@@ -93,7 +95,8 @@ function App() {
 
   const resetProgress = async () => {
     try {
-      await fetch(`${BACKEND_URL}/api/user/reset?user_id=${USER_ID}`, {
+      const userId = localStorage.getItem("infiniteCraftUsername") || "default";
+      await fetch(`${BACKEND_URL}/api/user/reset?user_id=${userId}`, {
         method: "POST",
       });
       // Refresh data
@@ -104,6 +107,10 @@ function App() {
     } catch (error) {
       console.error("Error resetting progress:", error);
     }
+  };
+  
+  const clearWorkspace = () => {
+    setWorkspaceElements([]);
   };
 
   // Generate a unique ID for workspace elements
