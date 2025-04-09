@@ -392,10 +392,15 @@ async def combine_elements(combination: CombinationRequest, user_id: str = "defa
         logger.info(f"Combination found: {combination_result is not None}")
         
         if not combination_result:
-            return CombinationResult(
-                success=False,
-                message="These elements cannot be combined"
-            )
+            # If no predefined combination exists, generate one with AI
+            logger.info(f"No predefined combination found, generating with AI...")
+            result_element = await generate_combination_with_ai(element1, element2)
+            
+            if not result_element:
+                return CombinationResult(
+                    success=False,
+                    message="These elements cannot be combined"
+                )
         
         # Get the result element
         result_element = await db.elements.find_one({"id": combination_result["result_id"]})
