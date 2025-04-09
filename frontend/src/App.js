@@ -188,6 +188,8 @@ function App() {
       setDraggedElement(null);
       return;
     }
+    
+    console.log("Attempting to combine elements:", draggedElement, targetElement);
 
     // Try to combine the elements
     try {
