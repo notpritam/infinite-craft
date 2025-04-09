@@ -20,7 +20,7 @@ function App() {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [combinationResult, setCombinationResult] = useState(null);
   const [showResult, setShowResult] = useState(false);
-  const [activeTab, setActiveTab] = useState("discoveries");
+  // Removed tabs state
   const workspaceRef = useRef(null);
   const resultTimeoutRef = useRef(null);
   
