@@ -4,7 +4,7 @@ import uuid
 
 class InfiniteCraftAPITest(unittest.TestCase):
     def setUp(self):
-        self.base_url = "https://infinite-craft-backend-ashy.vercel.app/api"
+        self.base_url = "https://7e8cc779-ad86-4a6a-84f2-875412d09142.preview.emergentagent.com/api"
         self.test_user = f"test_user_{uuid.uuid4().hex[:8]}"
 
     def test_1_base_elements(self):
