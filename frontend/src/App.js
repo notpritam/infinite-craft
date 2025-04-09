@@ -4,6 +4,13 @@ import "./App.css";
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
 function App() {
+  // User state
+  const [username, setUsername] = useState(() => {
+    return localStorage.getItem("infiniteCraftUsername") || "";
+  });
+  const [showUsernameModal, setShowUsernameModal] = useState(!localStorage.getItem("infiniteCraftUsername"));
+  
+  // Game state
   const [baseElements, setBaseElements] = useState([]);
   const [discoveredElements, setDiscoveredElements] = useState([]);
   const [workspaceElements, setWorkspaceElements] = useState([]);
@@ -13,8 +20,26 @@ function App() {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [combinationResult, setCombinationResult] = useState(null);
   const [showResult, setShowResult] = useState(false);
+  const [activeTab, setActiveTab] = useState("discoveries");
   const workspaceRef = useRef(null);
   const resultTimeoutRef = useRef(null);
+  
+  // Canvas animation for subtle effects
+  const canvasRef = useRef(null);
+  const animationFrameRef = useRef(null);
+  
+  // Handle username submission
+  const handleUsernameSubmit = (e) => {
+    e.preventDefault();
+    if (username.trim()) {
+      localStorage.setItem("infiniteCraftUsername", username.trim());
+      setShowUsernameModal(false);
+      // Fetch data with the new username
+      fetchBaseElements();
+      fetchDiscoveredElements();
+      fetchUserProgress();
+    }
+  };
 
   // Fetch base elements and discovered elements on load
   useEffect(() => {
