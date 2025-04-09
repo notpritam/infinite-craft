@@ -1,133 +1,113 @@
 import requests
-import pytest
-import os
-from datetime import datetime
+import unittest
+import json
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 BACKEND_URL = "https://1d0d519f-61bb-444b-a6c1-a4d185287a6a.preview.emergentagent.com"
 
-class TestInfiniteCraftAPI:
-    def __init__(self):
-        self.base_url = BACKEND_URL
-        self.test_user = f"test_user_{datetime.now().strftime('%H%M%S')}"
-        self.test_results = []
+class InfiniteCraftAPITest(unittest.TestCase):
+    def setUp(self):
+        self.base_url = f"{BACKEND_URL}/api"
+        self.test_user = "test_user_123"
 
-    def log_test(self, name, success, message=""):
-        self.test_results.append({
-            "name": name,
-            "success": success,
-            "message": message
-        })
-        status = "✅" if success else "❌"
-        print(f"{status} {name}: {message}")
-
-    def test_base_elements(self):
+    def test_1_base_elements(self):
+        """Test fetching base elements"""
         try:
-            response = requests.get(f"{self.base_url}/api/elements/base")
-            success = response.status_code == 200 and len(response.json()) > 0
-            self.log_test(
-                "Base Elements API",
-                success,
-                f"Found {len(response.json())} base elements" if success else "Failed to get base elements"
-            )
-            return response.json() if success else []
+            response = requests.get(f"{self.base_url}/elements/base")
+            self.assertEqual(response.status_code, 200)
+            data = response.json()
+            
+            # Log the raw data for debugging
+            logger.info("Base elements response: %s", json.dumps(data, indent=2))
+            
+            # Check we have the expected base elements
+            self.assertTrue(len(data) > 0)
+            
+            # Verify each base element has required fields
+            for element in data:
+                self.assertIn("id", element)
+                self.assertIn("name", element)
+                self.assertIn("emoji", element)
+                
+            logger.info("Base elements test passed")
+            return data
         except Exception as e:
-            self.log_test("Base Elements API", False, str(e))
-            return []
+            logger.error("Error in test_base_elements: %s", str(e))
+            raise
 
-    def test_discovered_elements(self):
+    def test_2_element_combination(self):
+        """Test combining elements"""
         try:
-            response = requests.get(f"{self.base_url}/api/elements/discovered?user_id={self.test_user}")
-            success = response.status_code == 200
-            self.log_test(
-                "Discovered Elements API",
-                success,
-                f"Found {len(response.json())} discovered elements" if success else "Failed to get discovered elements"
-            )
-            return response.json() if success else []
-        except Exception as e:
-            self.log_test("Discovered Elements API", False, str(e))
-            return []
-
-    def test_user_progress(self):
-        try:
-            response = requests.get(f"{self.base_url}/api/user/progress?user_id={self.test_user}")
-            success = response.status_code == 200 and "discovery_count" in response.json()
-            self.log_test(
-                "User Progress API",
-                success,
-                f"Discovery count: {response.json().get('discovery_count')}" if success else "Failed to get user progress"
-            )
-            return response.json() if success else None
-        except Exception as e:
-            self.log_test("User Progress API", False, str(e))
-            return None
-
-    def test_element_combination(self, element1_id, element2_id):
-        try:
+            # First get base elements
+            base_elements = self.test_1_base_elements()
+            
+            if len(base_elements) < 2:
+                logger.error("Not enough base elements to test combination")
+                return
+            
+            # Try to combine first two base elements
+            element1 = base_elements[0]
+            element2 = base_elements[1]
+            
+            logger.info("Attempting to combine: %s + %s", 
+                       f"{element1['emoji']} {element1['name']}", 
+                       f"{element2['emoji']} {element2['name']}")
+            
             response = requests.post(
-                f"{self.base_url}/api/elements/combine",
+                f"{self.base_url}/elements/combine",
                 json={
-                    "element1_id": element1_id,
-                    "element2_id": element2_id,
+                    "element1_id": element1["id"],
+                    "element2_id": element2["id"],
                     "user_id": self.test_user
                 }
             )
+            
+            self.assertEqual(response.status_code, 200)
             data = response.json()
-            success = response.status_code == 200 and data.get("success", False)
-            self.log_test(
-                "Element Combination API",
-                success,
-                f"Created: {data['result']['name']}" if success else data.get("message", "Combination failed")
-            )
-            return data if success else None
+            
+            # Log the combination result
+            logger.info("Combination result: %s", json.dumps(data, indent=2))
+            
+            # Verify the response format
+            self.assertIn("success", data)
+            if data["success"]:
+                self.assertIn("result", data)
+                result = data["result"]
+                self.assertIn("id", result)
+                self.assertIn("name", result)
+                self.assertIn("emoji", result)
+            
+            logger.info("Element combination test passed")
         except Exception as e:
-            self.log_test("Element Combination API", False, str(e))
-            return None
+            logger.error("Error in test_element_combination: %s", str(e))
+            raise
 
-    def test_reset_progress(self):
+    def test_3_user_progress(self):
+        """Test user progress tracking"""
         try:
-            response = requests.post(f"{self.base_url}/api/user/reset?user_id={self.test_user}")
-            success = response.status_code == 200
-            self.log_test(
-                "Reset Progress API",
-                success,
-                "Successfully reset progress" if success else "Failed to reset progress"
-            )
-            return success
+            response = requests.get(f"{self.base_url}/user/progress?user_id={self.test_user}")
+            self.assertEqual(response.status_code, 200)
+            data = response.json()
+            
+            # Log the progress data
+            logger.info("User progress: %s", json.dumps(data, indent=2))
+            
+            # Verify the response format
+            self.assertIn("user_id", data)
+            self.assertIn("discovery_count", data)
+            self.assertIn("discovered_elements", data)
+            
+            # Verify the user has at least the base elements
+            self.assertGreater(data["discovery_count"], 0)
+            
+            logger.info("User progress test passed")
         except Exception as e:
-            self.log_test("Reset Progress API", False, str(e))
-            return False
-
-def main():
-    print("\n🧪 Starting Infinite Craft API Tests...")
-    tester = TestInfiniteCraftAPI()
-
-    # Test base elements
-    base_elements = tester.test_base_elements()
-    
-    # Test discovered elements
-    discovered_elements = tester.test_discovered_elements()
-    
-    # Test user progress
-    progress = tester.test_user_progress()
-    
-    # Test element combination if we have base elements
-    if len(base_elements) >= 2:
-        tester.test_element_combination(
-            base_elements[0]["id"],
-            base_elements[1]["id"]
-        )
-    
-    # Test reset progress
-    tester.test_reset_progress()
-    
-    # Print summary
-    print("\n📊 Test Summary:")
-    total_tests = len(tester.test_results)
-    passed_tests = sum(1 for test in tester.test_results if test["success"])
-    print(f"Passed: {passed_tests}/{total_tests} tests")
-    
-    return 0 if passed_tests == total_tests else 1
+            logger.error("Error in test_user_progress: %s", str(e))
+            raise
 
 if __name__ == "__main__":
-    main()
+    unittest.main(verbosity=2)
