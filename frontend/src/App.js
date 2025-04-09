@@ -47,6 +47,12 @@ function App() {
     fetchDiscoveredElements();
     fetchUserProgress();
   }, []);
+  
+  // Log elements for debugging
+  useEffect(() => {
+    console.log('Base Elements:', baseElements);
+    console.log('Discovered Elements:', discoveredElements);
+  }, [baseElements, discoveredElements]);
 
   // Set up canvas animation
   useEffect(() => {
