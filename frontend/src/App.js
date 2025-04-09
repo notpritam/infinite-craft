@@ -48,9 +48,77 @@ function App() {
     fetchUserProgress();
   }, []);
 
-  // Clean up any timeouts on unmount
+  // Set up canvas animation
   useEffect(() => {
+    if (!canvasRef.current) return;
+    
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    const particles = [];
+    const particleCount = 50;
+    
+    // Resize canvas to match parent
+    const resizeCanvas = () => {
+      if (workspaceRef.current) {
+        canvas.width = workspaceRef.current.offsetWidth;
+        canvas.height = workspaceRef.current.offsetHeight;
+      }
+    };
+    
+    // Create particles
+    const createParticles = () => {
+      for (let i = 0; i < particleCount; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          radius: Math.random() * 2 + 1,
+          color: `rgba(230, 230, 230, ${Math.random() * 0.2 + 0.1})`,
+          speedX: Math.random() * 0.5 - 0.25,
+          speedY: Math.random() * 0.5 - 0.25
+        });
+      }
+    };
+    
+    // Draw and animate particles
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      particles.forEach(particle => {
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+        ctx.fillStyle = particle.color;
+        ctx.fill();
+        
+        // Move particle
+        particle.x += particle.speedX;
+        particle.y += particle.speedY;
+        
+        // Boundary check
+        if (particle.x < 0 || particle.x > canvas.width) {
+          particle.speedX = -particle.speedX;
+        }
+        
+        if (particle.y < 0 || particle.y > canvas.height) {
+          particle.speedY = -particle.speedY;
+        }
+      });
+      
+      animationFrameRef.current = requestAnimationFrame(animate);
+    };
+    
+    // Initialize
+    resizeCanvas();
+    createParticles();
+    animate();
+    
+    // Handle resize
+    window.addEventListener('resize', resizeCanvas);
+    
     return () => {
+      window.removeEventListener('resize', resizeCanvas);
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
       if (resultTimeoutRef.current) {
         clearTimeout(resultTimeoutRef.current);
       }
