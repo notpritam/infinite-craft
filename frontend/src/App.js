@@ -360,7 +360,19 @@ function App() {
       return;
     }
     
-    console.log("Attempting to combine elements:", draggedElement, targetElement);
+    console.log("Attempting to combine elements:", 
+      JSON.stringify({
+        draggedElement: {
+          id: draggedElement.id,
+          name: draggedElement.name,
+          emoji: draggedElement.emoji
+        }, 
+        targetElement: {
+          id: targetElement.id,
+          name: targetElement.name,
+          emoji: targetElement.emoji
+        }
+      }, null, 2));
 
     // Try to combine the elements
     try {
