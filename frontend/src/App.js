@@ -145,13 +145,22 @@ function App() {
   const fetchDiscoveredElements = async () => {
     try {
       const userId = localStorage.getItem("infiniteCraftUsername") || "default";
+      console.log(`Fetching discovered elements for user: ${userId}`);
       const response = await fetch(
         `${BACKEND_URL}/api/elements/discovered?user_id=${userId}`
       );
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
       const data = await response.json();
+      console.log("Discovered elements data:", data);
       setDiscoveredElements(data);
     } catch (error) {
       console.error("Error fetching discovered elements:", error);
+      // Set base elements as fallback if we can't get discovered elements
+      if (baseElements.length > 0) {
+        setDiscoveredElements(baseElements);
+      }
     }
   };
 
