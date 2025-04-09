@@ -85,7 +85,7 @@ class InfiniteCraftTester:
 
 def main():
     # Initialize tester with the backend URL
-    tester = InfiniteCraftTester("https://infinite-craft-backend-7cqk.onrender.com")
+    tester = InfiniteCraftTester("http://localhost:8001")
     
     # Test 1: API Root
     tester.test_api_root()
