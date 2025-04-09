@@ -441,13 +441,39 @@ function App() {
 
   return (
     <div className="app-container">
+      {/* Username Modal */}
+      {showUsernameModal && (
+        <div className="modal-overlay">
+          <div className="username-modal">
+            <h2>Welcome to Infinite Craft</h2>
+            <p>Please enter your username to begin crafting:</p>
+            <form onSubmit={handleUsernameSubmit}>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Enter username"
+                required
+              />
+              <button type="submit">Start Crafting</button>
+            </form>
+          </div>
+        </div>
+      )}
+
       <div className="header">
         <div className="logo">Infinite Craft</div>
-        <div className="discovery-counter">
-          Discoveries: {discoveryCount}
-          <button className="reset-button" onClick={resetProgress}>
-            Reset
-          </button>
+        <div className="user-section">
+          {username && <span className="username">👤 {username}</span>}
+          <span className="discovery-counter">Discoveries: {discoveryCount}</span>
+          <div className="header-buttons">
+            <button className="action-button" onClick={clearWorkspace}>
+              Clear Workspace
+            </button>
+            <button className="reset-button" onClick={resetProgress}>
+              Reset All
+            </button>
+          </div>
         </div>
       </div>
 
@@ -461,6 +487,9 @@ function App() {
           onTouchEnd={handleDrop}
           onMouseLeave={handleDragEnd}
         >
+          {/* Canvas for background animation */}
+          <canvas ref={canvasRef} className="workspace-canvas"></canvas>
+          
           {/* Workspace elements */}
           {workspaceElements.map((element, index) => (
             <div
@@ -522,33 +551,25 @@ function App() {
         </div>
 
         <div className="sidebar">
-          <div className="sidebar-section">
-            <h3>Base Elements</h3>
-            <div className="element-grid">
-              {baseElements.map((element) => (
-                <div
-                  key={element.id}
-                  className="element-card"
-                  onMouseDown={(e) => handleDragStart(element, e)}
-                  onTouchStart={(e) => handleDragStart(element, e)}
-                  onClick={() => addElementToWorkspace(element)}
-                >
-                  <span className="element-emoji">{element.emoji}</span>
-                  <span className="element-name">{element.name}</span>
-                </div>
-              ))}
-            </div>
+          <div className="sidebar-tabs">
+            <button 
+              className={`tab-button ${activeTab === 'base' ? 'active' : ''}`}
+              onClick={() => setActiveTab('base')}
+            >
+              Base Elements
+            </button>
+            <button 
+              className={`tab-button ${activeTab === 'discoveries' ? 'active' : ''}`}
+              onClick={() => setActiveTab('discoveries')}
+            >
+              Discoveries
+            </button>
           </div>
 
-          <div className="sidebar-section">
-            <h3>Discoveries</h3>
-            <div className="element-grid">
-              {discoveredElements
-                .filter(
-                  (element) =>
-                    !baseElements.some((baseEl) => baseEl.id === element.id)
-                )
-                .map((element) => (
+          <div className="sidebar-content">
+            {activeTab === 'base' && (
+              <div className="element-grid">
+                {baseElements.map((element) => (
                   <div
                     key={element.id}
                     className="element-card"
@@ -560,7 +581,30 @@ function App() {
                     <span className="element-name">{element.name}</span>
                   </div>
                 ))}
-            </div>
+              </div>
+            )}
+
+            {activeTab === 'discoveries' && (
+              <div className="element-grid">
+                {discoveredElements
+                  .filter(
+                    (element) =>
+                      !baseElements.some((baseEl) => baseEl.id === element.id)
+                  )
+                  .map((element) => (
+                    <div
+                      key={element.id}
+                      className="element-card"
+                      onMouseDown={(e) => handleDragStart(element, e)}
+                      onTouchStart={(e) => handleDragStart(element, e)}
+                      onClick={() => addElementToWorkspace(element)}
+                    >
+                      <span className="element-emoji">{element.emoji}</span>
+                      <span className="element-name">{element.name}</span>
+                    </div>
+                  ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
