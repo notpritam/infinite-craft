@@ -148,13 +148,15 @@ async def root():
 async def get_base_elements():
     """Return all base elements"""
     base_elements = await db.base_elements.find().to_list(length=100)
-    return base_elements
+    # Convert ObjectId to string if needed
+    return json.loads(json.dumps(base_elements, cls=JSONEncoder))
 
 @app.get("/api/elements/all")
 async def get_all_elements():
     """Return all elements (for admin/testing)"""
     elements = await db.elements.find().to_list(length=1000)
-    return elements
+    # Convert ObjectId to string if needed
+    return json.loads(json.dumps(elements, cls=JSONEncoder))
 
 @app.get("/api/elements/discovered")
 async def get_discovered_elements(user_id: str = "default"):
