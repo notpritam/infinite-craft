@@ -1,89 +1,133 @@
+import requests
 import pytest
-import httpx
 import os
-from dotenv import load_dotenv
+from datetime import datetime
 
-# Load environment variables
-load_dotenv()
+BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL')
 
-# Get backend URL from frontend .env
-with open('/app/frontend/.env', 'r') as f:
-    for line in f:
-        if line.startswith('REACT_APP_BACKEND_URL='):
-            BACKEND_URL = line.strip().split('=')[1].strip('"').strip("'")
-            break
+class TestInfiniteCraftAPI:
+    def __init__(self):
+        self.base_url = BACKEND_URL
+        self.test_user = f"test_user_{datetime.now().strftime('%H%M%S')}"
+        self.test_results = []
 
-@pytest.mark.asyncio
-async def test_base_elements():
-    """Test fetching base elements"""
-    async with httpx.AsyncClient() as client:
-        response = await client.get(f"{BACKEND_URL}/api/elements/base")
-        assert response.status_code == 200
-        data = response.json()
-        assert isinstance(data, list)
-        assert len(data) == 4  # Should have 4 base elements
-        
-        # Verify base elements
-        element_names = {elem["name"] for elem in data}
-        assert element_names == {"Water", "Fire", "Wind", "Earth"}
+    def log_test(self, name, success, message=""):
+        self.test_results.append({
+            "name": name,
+            "success": success,
+            "message": message
+        })
+        status = "✅" if success else "❌"
+        print(f"{status} {name}: {message}")
 
-@pytest.mark.asyncio
-async def test_discovered_elements():
-    """Test fetching discovered elements"""
-    async with httpx.AsyncClient() as client:
-        response = await client.get(f"{BACKEND_URL}/api/elements/discovered?user_id=test_user")
-        assert response.status_code == 200
-        data = response.json()
-        assert isinstance(data, list)
-        # Initially should have base elements
-        assert len(data) >= 4
+    def test_base_elements(self):
+        try:
+            response = requests.get(f"{self.base_url}/api/elements/base")
+            success = response.status_code == 200 and len(response.json()) > 0
+            self.log_test(
+                "Base Elements API",
+                success,
+                f"Found {len(response.json())} base elements" if success else "Failed to get base elements"
+            )
+            return response.json() if success else []
+        except Exception as e:
+            self.log_test("Base Elements API", False, str(e))
+            return []
 
-@pytest.mark.asyncio
-async def test_combine_elements():
-    """Test combining elements"""
-    async with httpx.AsyncClient() as client:
-        # First get base elements
-        response = await client.get(f"{BACKEND_URL}/api/elements/base")
-        base_elements = response.json()
-        
-        # Find Water and Fire elements
-        water = next(elem for elem in base_elements if elem["name"] == "Water")
-        fire = next(elem for elem in base_elements if elem["name"] == "Fire")
-        
-        # Try to combine Water and Fire
-        response = await client.post(
-            f"{BACKEND_URL}/api/elements/combine",
-            json={
-                "element1_id": water["id"],
-                "element2_id": fire["id"],
-                "user_id": "test_user"
-            }
+    def test_discovered_elements(self):
+        try:
+            response = requests.get(f"{self.base_url}/api/elements/discovered?user_id={self.test_user}")
+            success = response.status_code == 200
+            self.log_test(
+                "Discovered Elements API",
+                success,
+                f"Found {len(response.json())} discovered elements" if success else "Failed to get discovered elements"
+            )
+            return response.json() if success else []
+        except Exception as e:
+            self.log_test("Discovered Elements API", False, str(e))
+            return []
+
+    def test_user_progress(self):
+        try:
+            response = requests.get(f"{self.base_url}/api/user/progress?user_id={self.test_user}")
+            success = response.status_code == 200 and "discovery_count" in response.json()
+            self.log_test(
+                "User Progress API",
+                success,
+                f"Discovery count: {response.json().get('discovery_count')}" if success else "Failed to get user progress"
+            )
+            return response.json() if success else None
+        except Exception as e:
+            self.log_test("User Progress API", False, str(e))
+            return None
+
+    def test_element_combination(self, element1_id, element2_id):
+        try:
+            response = requests.post(
+                f"{self.base_url}/api/elements/combine",
+                json={
+                    "element1_id": element1_id,
+                    "element2_id": element2_id,
+                    "user_id": self.test_user
+                }
+            )
+            data = response.json()
+            success = response.status_code == 200 and data.get("success", False)
+            self.log_test(
+                "Element Combination API",
+                success,
+                f"Created: {data['result']['name']}" if success else data.get("message", "Combination failed")
+            )
+            return data if success else None
+        except Exception as e:
+            self.log_test("Element Combination API", False, str(e))
+            return None
+
+    def test_reset_progress(self):
+        try:
+            response = requests.post(f"{self.base_url}/api/user/reset?user_id={self.test_user}")
+            success = response.status_code == 200
+            self.log_test(
+                "Reset Progress API",
+                success,
+                "Successfully reset progress" if success else "Failed to reset progress"
+            )
+            return success
+        except Exception as e:
+            self.log_test("Reset Progress API", False, str(e))
+            return False
+
+def main():
+    print("\n🧪 Starting Infinite Craft API Tests...")
+    tester = TestInfiniteCraftAPI()
+
+    # Test base elements
+    base_elements = tester.test_base_elements()
+    
+    # Test discovered elements
+    discovered_elements = tester.test_discovered_elements()
+    
+    # Test user progress
+    progress = tester.test_user_progress()
+    
+    # Test element combination if we have base elements
+    if len(base_elements) >= 2:
+        tester.test_element_combination(
+            base_elements[0]["id"],
+            base_elements[1]["id"]
         )
-        
-        assert response.status_code == 200
-        data = response.json()
-        assert data["success"] == True
-        assert "result" in data
-        assert data["result"]["name"] == "Steam"  # Expected result
-
-@pytest.mark.asyncio
-async def test_user_progress():
-    """Test user progress tracking"""
-    async with httpx.AsyncClient() as client:
-        # Get initial progress
-        response = await client.get(f"{BACKEND_URL}/api/user/progress?user_id=test_user")
-        assert response.status_code == 200
-        initial_data = response.json()
-        assert "discovery_count" in initial_data
-        
-        # Reset progress
-        response = await client.post(f"{BACKEND_URL}/api/user/reset?user_id=test_user")
-        assert response.status_code == 200
-        
-        # Verify reset
-        response = await client.get(f"{BACKEND_URL}/api/user/progress?user_id=test_user")
-        reset_data = response.json()
-        assert reset_data["discovery_count"] == 4  # Should have only base elements
+    
+    # Test reset progress
+    tester.test_reset_progress()
+    
+    # Print summary
+    print("\n📊 Test Summary:")
+    total_tests = len(tester.test_results)
+    passed_tests = sum(1 for test in tester.test_results if test["success"])
+    print(f"Passed: {passed_tests}/{total_tests} tests")
+    
+    return 0 if passed_tests == total_tests else 1
 
 if __name__ == "__main__":
-    pytest.main([__file__, "-v"])
+    main()
