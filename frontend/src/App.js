@@ -134,11 +134,45 @@ function App() {
   const fetchBaseElements = async () => {
     try {
       const response = await fetch(`${BACKEND_URL}/api/elements/base`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
       const data = await response.json();
       console.log("Raw base elements data:", data);
       setBaseElements(data);
+      
+      // Ensure base elements are also in the discovered elements list
+      setDiscoveredElements(prevElements => {
+        if (!prevElements || prevElements.length === 0) {
+          return data;
+        }
+        
+        // Make sure all base elements are included
+        const existingIds = new Set(prevElements.map(elem => elem.id));
+        const newElements = data.filter(elem => !existingIds.has(elem.id));
+        
+        if (newElements.length > 0) {
+          return [...prevElements, ...newElements];
+        }
+        
+        return prevElements;
+      });
     } catch (error) {
       console.error("Error fetching base elements:", error);
+      // If we can't fetch base elements, create default ones
+      const defaultElements = [
+        { id: "water-id", name: "Water", emoji: "💧" },
+        { id: "fire-id", name: "Fire", emoji: "🔥" },
+        { id: "wind-id", name: "Wind", emoji: "💨" },
+        { id: "earth-id", name: "Earth", emoji: "🌍" }
+      ];
+      setBaseElements(defaultElements);
+      setDiscoveredElements(prevElements => {
+        if (!prevElements || prevElements.length === 0) {
+          return defaultElements;
+        }
+        return prevElements;
+      });
     }
   };
 
