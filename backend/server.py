@@ -134,7 +134,22 @@ async def get_element_by_name_emoji(name, emoji):
 
 @app.on_event("startup")
 async def startup_db_client():
+    logger.info("Initializing database...")
     await init_db()
+    
+    # Log base elements for debugging
+    base_elements = await db.base_elements.find().to_list(length=100)
+    logger.info(f"Loaded {len(base_elements)} base elements")
+    for elem in base_elements:
+        logger.info(f"Base element: {elem['emoji']} {elem['name']} (ID: {elem['id']})")
+    
+    # Log combinations for debugging
+    combinations = await db.combinations.find().to_list(length=200)
+    logger.info(f"Loaded {len(combinations)} combinations")
+    if len(combinations) > 0:
+        logger.info(f"Sample combination: {combinations[0]}")
+    else:
+        logger.info("No combinations found in database")
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
