@@ -66,56 +66,117 @@ class UserProgress(BaseModel):
 
 # Initialize database with base elements and combinations
 async def init_db():
-    # Check if base elements collection exists
-    base_elements_count = await db.base_elements.count_documents({})
+    # Drop existing collections to start fresh
+    await db.base_elements.drop()
+    await db.elements.drop()
+    await db.combinations.drop()
+    await db.user_progress.drop()
     
-    if base_elements_count == 0:
-        # Create base elements
-        base_elements = [
-            {"id": str(uuid.uuid4()), "name": "Water", "emoji": "💧"},
-            {"id": str(uuid.uuid4()), "name": "Fire", "emoji": "🔥"},
-            {"id": str(uuid.uuid4()), "name": "Wind", "emoji": "💨"},
-            {"id": str(uuid.uuid4()), "name": "Earth", "emoji": "🌍"}
-        ]
-        await db.base_elements.insert_many(base_elements)
-        logger.info("Base elements created")
+    logger.info("Database collections reset")
     
-    # Check if combinations collection exists
-    combinations_count = await db.combinations.count_documents({})
+    # Create base elements with fixed IDs for consistency
+    water_id = str(uuid.uuid4())
+    fire_id = str(uuid.uuid4())
+    wind_id = str(uuid.uuid4())
+    earth_id = str(uuid.uuid4())
     
-    if combinations_count == 0:
-        # Load combinations from JSON
-        try:
-            combinations_path = Path("/app/data/combinations.json")
-            if combinations_path.exists():
-                with open(combinations_path, 'r') as f:
-                    combinations_data = json.load(f)
+    base_elements = [
+        {"id": water_id, "name": "Water", "emoji": "💧"},
+        {"id": fire_id, "name": "Fire", "emoji": "🔥"},
+        {"id": wind_id, "name": "Wind", "emoji": "💨"},
+        {"id": earth_id, "name": "Earth", "emoji": "🌍"}
+    ]
+    
+    # Store base elements in both collections
+    await db.base_elements.insert_many(base_elements)
+    await db.elements.insert_many(base_elements)
+    logger.info(f"Created {len(base_elements)} base elements")
+    
+    # Create a mapping of element keys for easy lookup
+    element_map = {}
+    
+    # Add base elements to the map first
+    element_map["💧 Water"] = water_id
+    element_map["🔥 Fire"] = fire_id 
+    element_map["💨 Wind"] = wind_id
+    element_map["🌍 Earth"] = earth_id
+    
+    # Load combinations from JSON
+    try:
+        combinations_path = Path("/app/data/combinations.json")
+        if combinations_path.exists():
+            with open(combinations_path, 'r') as f:
+                combinations_data = json.load(f)
+            
+            # Process combinations for database
+            processed_combinations = []
+            
+            for combo in combinations_data:
+                # Get element keys
+                element1_key = combo["element1"]
+                element2_key = combo["element2"]
+                result_key = combo["result"]
                 
-                # Process combinations for database
-                processed_combinations = []
-                for combo in combinations_data:
-                    # Parse the emoji and name from the string
-                    element1_parts = combo["element1"].split(" ", 1)
-                    element2_parts = combo["element2"].split(" ", 1)
-                    result_parts = combo["result"].split(" ", 1)
-                    
-                    # Get or create elements
-                    element1 = await get_element_by_name_emoji(element1_parts[1], element1_parts[0])
-                    element2 = await get_element_by_name_emoji(element2_parts[1], element2_parts[0])
-                    result = await get_element_by_name_emoji(result_parts[1], result_parts[0])
-                    
-                    # Create combination
-                    processed_combinations.append({
-                        "element1_id": element1["id"],
-                        "element2_id": element2["id"],
-                        "result_id": result["id"]
+                # Parse the emoji and name
+                element1_parts = element1_key.split(" ", 1)
+                element2_parts = element2_key.split(" ", 1)
+                result_parts = result_key.split(" ", 1)
+                
+                # Get or create element IDs
+                if element1_key in element_map:
+                    element1_id = element_map[element1_key]
+                else:
+                    element1_id = str(uuid.uuid4())
+                    element_map[element1_key] = element1_id
+                    # Create the element in the database
+                    await db.elements.insert_one({
+                        "id": element1_id,
+                        "name": element1_parts[1],
+                        "emoji": element1_parts[0]
                     })
                 
-                if processed_combinations:
-                    await db.combinations.insert_many(processed_combinations)
-                    logger.info(f"Loaded {len(processed_combinations)} combinations")
-        except Exception as e:
-            logger.error(f"Error loading combinations: {e}")
+                if element2_key in element_map:
+                    element2_id = element_map[element2_key]
+                else:
+                    element2_id = str(uuid.uuid4())
+                    element_map[element2_key] = element2_id
+                    # Create the element in the database
+                    await db.elements.insert_one({
+                        "id": element2_id,
+                        "name": element2_parts[1],
+                        "emoji": element2_parts[0]
+                    })
+                
+                if result_key in element_map:
+                    result_id = element_map[result_key]
+                else:
+                    result_id = str(uuid.uuid4())
+                    element_map[result_key] = result_id
+                    # Create the element in the database
+                    await db.elements.insert_one({
+                        "id": result_id,
+                        "name": result_parts[1],
+                        "emoji": result_parts[0]
+                    })
+                
+                # Create combination record
+                processed_combinations.append({
+                    "element1_id": element1_id,
+                    "element2_id": element2_id,
+                    "result_id": result_id
+                })
+            
+            # Insert all processed combinations
+            if processed_combinations:
+                await db.combinations.insert_many(processed_combinations)
+                logger.info(f"Loaded {len(processed_combinations)} combinations")
+            
+            # Log total elements created
+            elements_count = await db.elements.count_documents({})
+            logger.info(f"Total elements in database: {elements_count}")
+            
+    except Exception as e:
+        logger.error(f"Error loading combinations: {str(e)}")
 
 async def get_element_by_name_emoji(name, emoji):
     # Try to find existing element
