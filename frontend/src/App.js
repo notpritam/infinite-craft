@@ -195,6 +195,8 @@ function App() {
 
   // Handle drag start from element library
   const handleDragStart = (element, event) => {
+    event.preventDefault();
+    
     if (event.type === "mousedown") {
       // For mouse events, calculate offset relative to the element
       const rect = event.currentTarget.getBoundingClientRect();
@@ -213,6 +215,8 @@ function App() {
       workspaceId: generateWorkspaceId(),
       position: { x: 0, y: 0 },
     });
+    
+    console.log("Started dragging element:", element.name);
   };
 
   // Handle drag over workspace
