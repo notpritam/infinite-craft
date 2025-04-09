@@ -175,7 +175,7 @@ async def get_discovered_elements(user_id: str = "default"):
         await db.user_progress.insert_one(user_progress)
         
         # Return base elements as discovered
-        return base_elements
+        return json.loads(json.dumps(base_elements, cls=JSONEncoder))
     
     # Get all discovered elements
     element_ids = user_progress["discovered_elements"]
@@ -186,7 +186,7 @@ async def get_discovered_elements(user_id: str = "default"):
         if element:
             discovered_elements.append(element)
     
-    return discovered_elements
+    return json.loads(json.dumps(discovered_elements, cls=JSONEncoder))
 
 @app.post("/api/elements/combine")
 async def combine_elements(combination: CombinationRequest, user_id: str = "default"):
