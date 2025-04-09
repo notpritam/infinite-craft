@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 # Get the backend URL from environment variable or use default
 BACKEND_URL = "https://infinite-craft-backend-5ybw.onrender.com"
-USER_ID = "test_user"
+USER_ID = "default"
 
 class TestInfiniteCraftAPI:
     def setup_method(self):
