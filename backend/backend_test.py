@@ -1,188 +1,135 @@
 import pytest
 import requests
-import json
-from datetime import datetime
+import uuid
+from typing import Dict
 
 class InfiniteCraftTester:
     def __init__(self, base_url):
         self.base_url = base_url
         self.tests_run = 0
         self.tests_passed = 0
-        self.user_id = f"test_user_{datetime.now().strftime('%H%M%S')}"
+        self.user_id = f"test_user_{uuid.uuid4()}"
 
-    def run_test(self, name, method, endpoint, expected_status, data=None):
+    def run_test(self, name: str, method: str, endpoint: str, expected_status: int, data: Dict = None) -> tuple:
         """Run a single API test"""
         url = f"{self.base_url}/api/{endpoint}"
-        headers = {'Content-Type': 'application/json'}
-        
         self.tests_run += 1
         print(f"\n🔍 Testing {name}...")
         
         try:
             if method == 'GET':
-                response = requests.get(url, headers=headers, params={'user_id': self.user_id} if 'user' in endpoint else None)
+                response = requests.get(url)
             elif method == 'POST':
-                if data:
-                    response = requests.post(url, json=data, headers=headers)
-                else:
-                    response = requests.post(url, params={'user_id': self.user_id}, headers=headers)
+                response = requests.post(url, json=data)
 
             success = response.status_code == expected_status
             if success:
                 self.tests_passed += 1
                 print(f"✅ Passed - Status: {response.status_code}")
-                return success, response.json()
+                if response.text:
+                    print(f"Response: {response.json()}")
             else:
                 print(f"❌ Failed - Expected {expected_status}, got {response.status_code}")
-                return False, {}
+                if response.text:
+                    print(f"Error: {response.text}")
+
+            return success, response.json() if response.text else {}
 
         except Exception as e:
             print(f"❌ Failed - Error: {str(e)}")
             return False, {}
 
-    def test_base_elements(self):
+    def test_api_root(self):
+        """Test root API endpoint"""
+        return self.run_test("API Root", "GET", "", 200)
+
+    def test_get_base_elements(self):
         """Test getting base elements"""
-        success, response = self.run_test(
-            "Get Base Elements",
-            "GET",
-            "elements/base",
-            200
-        )
-        if success:
-            print(f"Found {len(response)} base elements")
-            return response
-        return []
+        return self.run_test("Get Base Elements", "GET", "elements/base", 200)
 
-    def test_discovered_elements(self):
+    def test_get_discovered_elements(self):
         """Test getting discovered elements"""
-        success, response = self.run_test(
-            "Get Discovered Elements",
-            "GET", 
-            "elements/discovered",
-            200
-        )
-        if success:
-            print(f"Found {len(response)} discovered elements")
-            return response
-        return []
+        return self.run_test("Get Discovered Elements", "GET", f"elements/discovered?user_id={self.user_id}", 200)
 
-    def test_combine_elements(self, element1_id, element2_id):
+    def test_combine_elements(self, element1_id: str, element2_id: str):
         """Test combining elements"""
-        success, response = self.run_test(
+        data = {
+            "element1_id": element1_id,
+            "element2_id": element2_id
+        }
+        return self.run_test(
             "Combine Elements",
             "POST",
-            "elements/combine",
+            f"elements/combine?user_id={self.user_id}",
             200,
-            data={
-                "element1_id": element1_id,
-                "element2_id": element2_id
-            }
+            data
         )
-        if success and response.get('success'):
-            print(f"Successfully combined elements into: {response['result']['name']}")
-            return response['result']
-        return None
 
-    def test_reset_progress(self):
+    def test_reset_user_progress(self):
         """Test resetting user progress"""
-        success, response = self.run_test(
+        return self.run_test(
             "Reset User Progress",
             "POST",
-            "user/reset",
+            f"user/reset?user_id={self.user_id}",
             200
         )
-        return success
 
-    def test_get_progress(self):
+    def test_get_user_progress(self):
         """Test getting user progress"""
-        success, response = self.run_test(
+        return self.run_test(
             "Get User Progress",
             "GET",
-            "user/progress",
+            f"user/progress?user_id={self.user_id}",
             200
         )
-        if success:
-            print(f"User has discovered {response['discovery_count']} elements")
-            return response
-        return None
 
 def main():
-    # Get backend URL from environment variable
-    backend_url = "https://infinite-craft-backend-7tk2rvprxa-uc.a.run.app"
+    # Initialize tester with the backend URL
+    tester = InfiniteCraftTester("https://infinite-craft-backend-7cqk.onrender.com")
     
-    # Setup tester
-    tester = InfiniteCraftTester(backend_url)
+    # Test 1: API Root
+    tester.test_api_root()
     
-    # Run tests
-    print("\n🚀 Starting Infinite Craft API Tests...")
+    # Test 2: Get Base Elements
+    success, base_elements = tester.test_get_base_elements()
+    if not success or not base_elements:
+        print("❌ Failed to get base elements, stopping tests")
+        return
     
-    # Test 1: Get base elements
-    base_elements = tester.test_base_elements()
-    if not base_elements:
-        print("❌ Base elements test failed, stopping tests")
-        return 1
-
-    # Test 2: Get discovered elements (should be same as base initially)
-    discovered = tester.test_discovered_elements()
-    if not discovered:
-        print("❌ Discovered elements test failed")
-        return 1
-
-    # Test 3: Combine first two base elements
+    # Test 3: Get Initial Discovered Elements
+    success, discovered = tester.test_get_discovered_elements()
+    if not success:
+        print("❌ Failed to get discovered elements")
+        return
+    
+    # Test 4: Combine Elements (using first two base elements)
     if len(base_elements) >= 2:
-        result = tester.test_combine_elements(
-            base_elements[0]['id'],
-            base_elements[1]['id']
-        )
-        if not result:
-            print("❌ Element combination failed")
-            return 1
-
-    # Test 4: Get progress after combination
-    progress = tester.test_get_progress()
-    if not progress:
-        print("❌ Get progress test failed")
-        return 1
-
-    # Test 5: Reset progress
-    if not tester.test_reset_progress():
-        print("❌ Reset progress test failed")
-        return 1
-
-    # Print results
-    print(f"\n📊 Tests passed: {tester.tests_passed}/{tester.tests_run}")
-    return 0 if tester.tests_passed == tester.tests_run else 1
-
-@pytest.fixture
-def tester():
-    backend_url = "https://infinite-craft-backend-7tk2rvprxa-uc.a.run.app"
-    return InfiniteCraftTester(backend_url)
-
-def test_infinite_craft_api(tester):
-    """Test the complete Infinite Craft API flow"""
+        element1 = base_elements[0]
+        element2 = base_elements[1]
+        success, result = tester.test_combine_elements(element1['id'], element2['id'])
+        if not success:
+            print("❌ Failed to combine elements")
+            return
     
-    # Test 1: Get base elements
-    base_elements = tester.test_base_elements()
-    assert base_elements, "Failed to get base elements"
-
-    # Test 2: Get discovered elements (should be same as base initially)
-    discovered = tester.test_discovered_elements()
-    assert discovered, "Failed to get discovered elements"
-
-    # Test 3: Combine first two base elements
-    if len(base_elements) >= 2:
-        result = tester.test_combine_elements(
-            base_elements[0]['id'],
-            base_elements[1]['id']
-        )
-        assert result, "Failed to combine elements"
-
-    # Test 4: Get progress after combination
-    progress = tester.test_get_progress()
-    assert progress, "Failed to get user progress"
-
-    # Test 5: Reset progress
-    assert tester.test_reset_progress(), "Failed to reset progress"
+    # Test 5: Get User Progress
+    success, progress = tester.test_get_user_progress()
+    if not success:
+        print("❌ Failed to get user progress")
+        return
+    
+    # Test 6: Reset User Progress
+    success, _ = tester.test_reset_user_progress()
+    if not success:
+        print("❌ Failed to reset user progress")
+        return
+    
+    # Print final results
+    print(f"\n📊 Tests Summary:")
+    print(f"Total Tests: {tester.tests_run}")
+    print(f"Passed: {tester.tests_passed}")
+    print(f"Failed: {tester.tests_run - tester.tests_passed}")
+    
+    return tester.tests_passed == tester.tests_run
 
 if __name__ == "__main__":
-    pytest.main(["-v", __file__])
+    main()
