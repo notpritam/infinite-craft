@@ -39,23 +39,122 @@ body {
   color: #333;
 }
 
-.discovery-counter {
+.user-section {
   display: flex;
   align-items: center;
   gap: 15px;
 }
 
-.reset-button {
-  background-color: #f0f0f0;
+.username {
+  font-weight: 500;
+  color: #555;
+  background-color: #f5f5f5;
+  padding: 4px 10px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.discovery-counter {
+  font-weight: 500;
+  color: #555;
+}
+
+.header-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.action-button, .reset-button {
   border: none;
   border-radius: 4px;
   padding: 5px 10px;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
+  font-size: 14px;
+}
+
+.action-button {
+  background-color: #f0f0f0;
+  color: #555;
+}
+
+.action-button:hover {
+  background-color: #e0e0e0;
+  transform: translateY(-1px);
+}
+
+.reset-button {
+  background-color: #fff0f0;
+  color: #d85c5c;
+  border: 1px solid #ffd5d5;
 }
 
 .reset-button:hover {
-  background-color: #e0e0e0;
+  background-color: #ffe0e0;
+  transform: translateY(-1px);
+}
+
+/* Username modal styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.username-modal {
+  background-color: white;
+  border-radius: 8px;
+  padding: 30px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.username-modal h2 {
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.username-modal p {
+  margin-bottom: 20px;
+  color: #666;
+}
+
+.username-modal form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.username-modal input {
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.username-modal button {
+  background-color: #4caf50;
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.2s;
+}
+
+.username-modal button:hover {
+  background-color: #45a049;
 }
 
 /* Main content area */
