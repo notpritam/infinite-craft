@@ -365,7 +365,18 @@ function App() {
         };
         setWorkspaceElements((prevElements) => [...prevElements, newElement]);
 
-        // Refresh discovered elements and progress
+        // Update discovered elements in state immediately
+        setDiscoveredElements(prevDiscovered => {
+          // Check if the element already exists in the discovered elements
+          const elementExists = prevDiscovered.some(elem => elem.id === data.result.id);
+          if (!elementExists) {
+            // Add the new element to the discovered elements
+            return [...prevDiscovered, data.result];
+          }
+          return prevDiscovered;
+        });
+
+        // Also fetch from server to ensure consistency
         fetchDiscoveredElements();
         fetchUserProgress();
       } else {
