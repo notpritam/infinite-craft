@@ -41,6 +41,16 @@ function App() {
     }
   };
 
+  // Handle logout
+  const handleLogout = () => {
+    localStorage.removeItem("infiniteCraftUsername");
+    setUsername("");
+    setShowUsernameModal(true);
+    setDiscoveredElements([]);
+    setWorkspaceElements([]);
+    setDiscoveryCount(0);
+  };
+
   // Fetch base elements and discovered elements on load
   useEffect(() => {
     fetchBaseElements();
@@ -562,7 +572,14 @@ function App() {
       <div className="header">
         <div className="logo">Infinite Craft</div>
         <div className="user-section">
-          {username && <span className="username">👤 {username}</span>}
+          {username && (
+            <>
+              <span className="username">👤 {username}</span>
+              <button className="logout-button" onClick={handleLogout}>
+                Logout
+              </button>
+            </>
+          )}
           <span className="discovery-counter">Discoveries: {discoveryCount}</span>
           <div className="header-buttons">
             <button className="action-button" onClick={clearWorkspace}>

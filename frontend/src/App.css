@@ -66,7 +66,7 @@ body {
   gap: 8px;
 }
 
-.action-button, .reset-button {
+.action-button, .reset-button, .logout-button {
   border: none;
   border-radius: 4px;
   padding: 5px 10px;
@@ -93,6 +93,18 @@ body {
 
 .reset-button:hover {
   background-color: #ffe0e0;
+  transform: translateY(-1px);
+}
+
+.logout-button {
+  background-color: #f0f5ff;
+  color: #4a6baf;
+  border: 1px solid #d5e3ff;
+  font-weight: 500;
+}
+
+.logout-button:hover {
+  background-color: #e0edff;
   transform: translateY(-1px);
 }
 

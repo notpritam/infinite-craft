@@ -59,6 +59,7 @@ class Element(BaseModel):
 class CombinationRequest(BaseModel):
     element1_id: str
     element2_id: str
+    user_id: Optional[str] = "default"
 
 class CombinationResult(BaseModel):
     success: bool
@@ -359,11 +360,11 @@ async def get_discovered_elements(user_id: str = "default"):
     return json.loads(json.dumps(discovered_elements, cls=JSONEncoder))
 
 @app.post("/api/elements/combine")
-async def combine_elements(combination: CombinationRequest, user_id: str = "default"):
+async def combine_elements(combination: CombinationRequest):
     """Combine two elements and return the result"""
     try:
         # Debug log
-        logger.info(f"Combine request: {combination.element1_id} + {combination.element2_id}")
+        logger.info(f"Combine request: {combination.element1_id} + {combination.element2_id}, User: {combination.user_id}")
         
         # Get the elements (check in both base_elements and elements collections)
         element1 = await db.base_elements.find_one({"id": combination.element1_id})
@@ -418,6 +419,7 @@ async def combine_elements(combination: CombinationRequest, user_id: str = "defa
         logger.info(f"Result element: {result_element['name']}")
         
         # Add to user's discovered elements if not already discovered
+        user_id = combination.user_id if combination.user_id else "default"
         user_progress = await db.user_progress.find_one({"user_id": user_id})
         
         if not user_progress:
@@ -430,6 +432,7 @@ async def combine_elements(combination: CombinationRequest, user_id: str = "defa
                 "discovered_elements": base_element_ids
             }
             await db.user_progress.insert_one(user_progress)
+            logger.info(f"Created new user progress for {user_id}")
         
         # Check if element is already discovered
         is_new_discovery = result_element["id"] not in user_progress["discovered_elements"]
@@ -440,6 +443,7 @@ async def combine_elements(combination: CombinationRequest, user_id: str = "defa
                 {"user_id": user_id},
                 {"$addToSet": {"discovered_elements": result_element["id"]}}
             )
+            logger.info(f"Added new element {result_element['name']} to user {user_id}'s discoveries")
         
         # Return the result with proper MongoDB object conversion
         result_dict = {
