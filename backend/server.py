@@ -191,62 +191,95 @@ async def get_discovered_elements(user_id: str = "default"):
 @app.post("/api/elements/combine")
 async def combine_elements(combination: CombinationRequest, user_id: str = "default"):
     """Combine two elements and return the result"""
-    # Get the elements
-    element1 = await db.elements.find_one({"id": combination.element1_id})
-    element2 = await db.elements.find_one({"id": combination.element2_id})
-    
-    if not element1 or not element2:
-        raise HTTPException(status_code=404, detail="One or both elements not found")
-    
-    # Check if combination exists
-    combination_result = await db.combinations.find_one({
-        "$or": [
-            {"element1_id": element1["id"], "element2_id": element2["id"]},
-            {"element1_id": element2["id"], "element2_id": element1["id"]}
-        ]
-    })
-    
-    if not combination_result:
+    try:
+        # Debug log
+        logger.info(f"Combine request: {combination.element1_id} + {combination.element2_id}")
+        
+        # Get the elements (check in both base_elements and elements collections)
+        element1 = await db.base_elements.find_one({"id": combination.element1_id})
+        if not element1:
+            element1 = await db.elements.find_one({"id": combination.element1_id})
+            
+        element2 = await db.base_elements.find_one({"id": combination.element2_id})
+        if not element2:
+            element2 = await db.elements.find_one({"id": combination.element2_id})
+        
+        # Debug log
+        logger.info(f"Found elements: {element1 is not None}, {element2 is not None}")
+        
+        if not element1 or not element2:
+            logger.error(f"Elements not found: {combination.element1_id}, {combination.element2_id}")
+            return CombinationResult(
+                success=False,
+                message="One or both elements not found"
+            )
+        
+        # Check if combination exists
+        combination_result = await db.combinations.find_one({
+            "$or": [
+                {"element1_id": element1["id"], "element2_id": element2["id"]},
+                {"element1_id": element2["id"], "element2_id": element1["id"]}
+            ]
+        })
+        
+        logger.info(f"Combination found: {combination_result is not None}")
+        
+        if not combination_result:
+            return CombinationResult(
+                success=False,
+                message="These elements cannot be combined"
+            )
+        
+        # Get the result element
+        result_element = await db.elements.find_one({"id": combination_result["result_id"]})
+        
+        if not result_element:
+            logger.error(f"Result element not found: {combination_result['result_id']}")
+            return CombinationResult(
+                success=False,
+                message="Result element not found"
+            )
+        
+        logger.info(f"Result element: {result_element['name']}")
+        
+        # Add to user's discovered elements if not already discovered
+        user_progress = await db.user_progress.find_one({"user_id": user_id})
+        
+        if not user_progress:
+            # Create user progress with base elements + new discovery
+            base_elements = await db.base_elements.find().to_list(length=100)
+            base_element_ids = [elem["id"] for elem in base_elements]
+            
+            user_progress = {
+                "user_id": user_id,
+                "discovered_elements": base_element_ids
+            }
+            await db.user_progress.insert_one(user_progress)
+        
+        # Check if element is already discovered
+        is_new_discovery = result_element["id"] not in user_progress["discovered_elements"]
+        
+        # Add to discovered elements if new
+        if is_new_discovery:
+            await db.user_progress.update_one(
+                {"user_id": user_id},
+                {"$addToSet": {"discovered_elements": result_element["id"]}}
+            )
+        
+        # Return the result with proper MongoDB object conversion
+        result_dict = {
+            "success": True,
+            "result": result_element,
+            "message": "New element discovered!" if is_new_discovery else "Element already discovered"
+        }
+        return json.loads(json.dumps(result_dict, cls=JSONEncoder))
+        
+    except Exception as e:
+        logger.error(f"Error in combine_elements: {str(e)}")
         return CombinationResult(
             success=False,
-            message="These elements cannot be combined"
+            message=f"Error: {str(e)}"
         )
-    
-    # Get the result element
-    result_element = await db.elements.find_one({"id": combination_result["result_id"]})
-    
-    if not result_element:
-        raise HTTPException(status_code=500, detail="Result element not found")
-    
-    # Add to user's discovered elements if not already discovered
-    user_progress = await db.user_progress.find_one({"user_id": user_id})
-    
-    if not user_progress:
-        # Create user progress with base elements + new discovery
-        base_elements = await db.base_elements.find().to_list(length=100)
-        base_element_ids = [elem["id"] for elem in base_elements]
-        
-        user_progress = {
-            "user_id": user_id,
-            "discovered_elements": base_element_ids
-        }
-        await db.user_progress.insert_one(user_progress)
-    
-    # Check if element is already discovered
-    is_new_discovery = result_element["id"] not in user_progress["discovered_elements"]
-    
-    # Add to discovered elements if new
-    if is_new_discovery:
-        await db.user_progress.update_one(
-            {"user_id": user_id},
-            {"$addToSet": {"discovered_elements": result_element["id"]}}
-        )
-    
-    return CombinationResult(
-        success=True,
-        result=Element(**result_element),
-        message="New element discovered!" if is_new_discovery else "Element already discovered"
-    )
 
 @app.post("/api/user/reset")
 async def reset_user_progress(user_id: str = "default"):
