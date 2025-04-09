@@ -246,13 +246,13 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  background-color: #fff;
+  background: linear-gradient(145deg, #ffffff, #f5f7fa);
   border: 1px solid #eaeaea;
-  border-radius: 6px;
+  border-radius: 8px;
   padding: 8px 12px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
   user-select: none;
   max-width: 120px;
   white-space: nowrap;
@@ -261,21 +261,25 @@ body {
 
 .element-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+  background: linear-gradient(145deg, #ffffff, #f0f4f9);
 }
 
 .element-card:active {
   transform: translateY(0);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  background: linear-gradient(145deg, #f5f7fa, #ffffff);
 }
 
 .element-emoji {
   font-size: 18px;
+  flex-shrink: 0;
 }
 
 .element-name {
   font-size: 14px;
-  color: #333;
+  color: #444;
+  font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
