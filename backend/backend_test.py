@@ -3,7 +3,7 @@ import pytest
 import json
 
 # Use the public endpoint from frontend/.env
-BACKEND_URL = "https://infinite-craft-backend-3000.shuttleapp.rs"
+BACKEND_URL = "https://1d0d519f-61bb-444b-a6c1-a4d185287a6a.preview.emergentagent.com"
 USER_ID = "test_user"
 
 class TestInfiniteCraftAPI:
