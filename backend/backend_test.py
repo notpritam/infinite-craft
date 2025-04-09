@@ -3,7 +3,7 @@ import pytest
 import os
 from datetime import datetime
 
-BACKEND_URL = os.environ.get('REACT_APP_BACKEND_URL')
+BACKEND_URL = "https://1d0d519f-61bb-444b-a6c1-a4d185287a6a.preview.emergentagent.com"
 
 class TestInfiniteCraftAPI:
     def __init__(self):
