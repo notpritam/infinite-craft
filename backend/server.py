@@ -14,9 +14,10 @@ from typing import List, Dict, Any, Optional
 from pydantic import BaseModel, Field
 from bson import ObjectId
 
-# /backend 
+# Load environment variables from backend directory
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
+print(f"Loading .env from {ROOT_DIR / '.env'}")
 
 # Custom JSON encoder for MongoDB ObjectId
 class JSONEncoder(json.JSONEncoder):
