@@ -7,6 +7,8 @@ import os
 import logging
 import json
 import uuid
+import httpx
+import re
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel, Field
