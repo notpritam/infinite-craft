@@ -224,6 +224,7 @@ function App() {
 
     // Try to combine the elements
     try {
+      const userId = localStorage.getItem("infiniteCraftUsername") || "default";
       const response = await fetch(`${BACKEND_URL}/api/elements/combine`, {
         method: "POST",
         headers: {
@@ -232,7 +233,7 @@ function App() {
         body: JSON.stringify({
           element1_id: draggedElement.id,
           element2_id: targetElement.id,
-          user_id: USER_ID,
+          user_id: userId,
         }),
       });
 
