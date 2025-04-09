@@ -18,6 +18,7 @@ from bson import ObjectId
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 print(f"Loading .env from {ROOT_DIR / '.env'}")
+print(f"Loading .env from {ROOT_DIR / '.env'}")
 
 # Custom JSON encoder for MongoDB ObjectId
 class JSONEncoder(json.JSONEncoder):
