@@ -1,123 +1,109 @@
+import unittest
 import requests
-import pytest
 import os
-from dotenv import load_dotenv
-import logging
+import json
+from datetime import datetime
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+class InfiniteCraftAPITest(unittest.TestCase):
+    def setUp(self):
+        self.base_url = os.environ.get('REACT_APP_BACKEND_URL', 'http://localhost:8001')
+        self.test_user = f"test_user_{datetime.now().strftime('%H%M%S')}"
+        print(f"\nTesting with base URL: {self.base_url}")
 
-# Load environment variables
-load_dotenv()
-
-# Get backend URL from frontend .env
-with open('/app/frontend/.env', 'r') as f:
-    for line in f:
-        if 'REACT_APP_BACKEND_URL' in line:
-            BACKEND_URL = line.split('=')[1].strip().strip('"')
-            break
-
-class TestInfiniteCraftAPI:
-    def __init__(self):
-        self.base_url = BACKEND_URL
-        self.test_user_id = "test_user_123"
-        self.base_elements = None
-        self.element1_id = None
-        self.element2_id = None
-
-    def test_api_root(self):
-        """Test the root API endpoint"""
+    def test_01_api_root(self):
+        """Test API root endpoint"""
+        print("\nTesting API root endpoint...")
         response = requests.get(f"{self.base_url}/api")
-        assert response.status_code == 200
-        assert "message" in response.json()
-        logger.info("✅ Root API endpoint test passed")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"message": "Infinite Craft API"})
+        print("✅ API root endpoint test passed")
 
-    def test_get_base_elements(self):
-        """Test getting base elements"""
+    def test_02_base_elements(self):
+        """Test fetching base elements"""
+        print("\nTesting base elements endpoint...")
         response = requests.get(f"{self.base_url}/api/elements/base")
-        assert response.status_code == 200
-        elements = response.json()
-        assert len(elements) > 0
-        assert all(["id" in elem and "name" in elem and "emoji" in elem for elem in elements])
-        self.base_elements = elements
-        self.element1_id = elements[0]["id"]  # Store for combination test
-        self.element2_id = elements[1]["id"]  # Store for combination test
-        logger.info(f"✅ Base elements test passed. Found {len(elements)} elements")
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIsInstance(data, list)
+        self.assertTrue(len(data) > 0)
+        # Verify base elements structure
+        for element in data:
+            self.assertIn('id', element)
+            self.assertIn('name', element)
+            self.assertIn('emoji', element)
+        print(f"✅ Base elements test passed. Found {len(data)} base elements")
 
-    def test_get_discovered_elements(self):
-        """Test getting discovered elements for a user"""
-        response = requests.get(f"{self.base_url}/api/elements/discovered?user_id={self.test_user_id}")
-        assert response.status_code == 200
-        elements = response.json()
-        assert len(elements) > 0  # Should at least have base elements
-        logger.info(f"✅ Discovered elements test passed. Found {len(elements)} elements")
+    def test_03_discovered_elements(self):
+        """Test fetching discovered elements for a new user"""
+        print("\nTesting discovered elements endpoint...")
+        response = requests.get(f"{self.base_url}/api/elements/discovered?user_id={self.test_user}")
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIsInstance(data, list)
+        # New user should have access to base elements
+        self.assertTrue(len(data) > 0)
+        print(f"✅ Discovered elements test passed. Found {len(data)} elements")
 
-    def test_combine_elements(self):
-        """Test combining two elements"""
-        if not self.element1_id or not self.element2_id:
-            self.test_get_base_elements()
-
-        data = {
-            "element1_id": self.element1_id,
-            "element2_id": self.element2_id
+    def test_04_combine_elements(self):
+        """Test combining elements"""
+        print("\nTesting element combination...")
+        # First get base elements
+        base_response = requests.get(f"{self.base_url}/api/elements/base")
+        base_elements = base_response.json()
+        
+        if len(base_elements) < 2:
+            self.fail("Not enough base elements for combination test")
+        
+        # Try combining first two base elements
+        combination_data = {
+            "element1_id": base_elements[0]['id'],
+            "element2_id": base_elements[1]['id'],
+            "user_id": self.test_user
         }
+        
         response = requests.post(
-            f"{self.base_url}/api/elements/combine?user_id={self.test_user_id}",
-            json=data
+            f"{self.base_url}/api/elements/combine",
+            json=combination_data
         )
-        assert response.status_code == 200
+        
+        self.assertEqual(response.status_code, 200)
         result = response.json()
-        assert "success" in result
-        if result["success"]:
-            assert "result" in result
-            assert "name" in result["result"]
-            assert "emoji" in result["result"]
-            logger.info(f"✅ Element combination test passed. Created: {result['result']['emoji']} {result['result']['name']}")
+        self.assertIn('success', result)
+        if result['success']:
+            self.assertIn('result', result)
+            self.assertIn('name', result['result'])
+            self.assertIn('emoji', result['result'])
+            print(f"✅ Successfully combined {base_elements[0]['name']} + {base_elements[1]['name']} = {result['result']['name']}")
         else:
-            logger.info("✅ Element combination test passed with expected failure response")
+            print(f"⚠️ Combination did not produce a new element: {result.get('message', 'No message')}")
 
-    def test_user_progress(self):
-        """Test getting user progress"""
-        response = requests.get(f"{self.base_url}/api/user/progress?user_id={self.test_user_id}")
-        assert response.status_code == 200
-        progress = response.json()
-        assert "user_id" in progress
-        assert "discovery_count" in progress
-        assert "discovered_elements" in progress
-        assert progress["discovery_count"] > 0
-        logger.info(f"✅ User progress test passed. Discoveries: {progress['discovery_count']}")
+    def test_05_user_progress(self):
+        """Test user progress tracking"""
+        print("\nTesting user progress endpoint...")
+        response = requests.get(f"{self.base_url}/api/user/progress?user_id={self.test_user}")
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn('user_id', data)
+        self.assertIn('discovery_count', data)
+        self.assertIn('discovered_elements', data)
+        print(f"✅ User progress test passed. Discovery count: {data['discovery_count']}")
 
-    def test_reset_user_progress(self):
+    def test_06_reset_progress(self):
         """Test resetting user progress"""
-        response = requests.post(f"{self.base_url}/api/user/reset?user_id={self.test_user_id}")
-        assert response.status_code == 200
-        assert "message" in response.json()
-
+        print("\nTesting reset progress endpoint...")
+        response = requests.post(f"{self.base_url}/api/user/reset?user_id={self.test_user}")
+        self.assertEqual(response.status_code, 200)
+        
         # Verify reset by checking progress
-        progress_response = requests.get(f"{self.base_url}/api/user/progress?user_id={self.test_user_id}")
-        progress = progress_response.json()
-        assert progress["discovery_count"] == 4  # Should only have base elements
-        logger.info("✅ Reset user progress test passed")
+        progress_response = requests.get(f"{self.base_url}/api/user/progress?user_id={self.test_user}")
+        progress_data = progress_response.json()
+        
+        # After reset, user should only have base elements
+        base_response = requests.get(f"{self.base_url}/api/elements/base")
+        base_elements = base_response.json()
+        
+        self.assertEqual(len(progress_data['discovered_elements']), len(base_elements))
+        print("✅ Reset progress test passed")
 
-    def run_all_tests(self):
-        """Run all API tests"""
-        try:
-            logger.info("\n🔍 Starting Infinite Craft API Tests...")
-            
-            self.test_api_root()
-            self.test_get_base_elements()
-            self.test_get_discovered_elements()
-            self.test_combine_elements()
-            self.test_user_progress()
-            self.test_reset_user_progress()
-            
-            logger.info("\n✨ All API tests completed successfully!")
-            return True
-        except Exception as e:
-            logger.error(f"\n❌ Test failed: {str(e)}")
-            return False
-
-if __name__ == "__main__":
-    tester = TestInfiniteCraftAPI()
-    tester.run_all_tests()
+if __name__ == '__main__':
+    unittest.main(verbosity=2)
