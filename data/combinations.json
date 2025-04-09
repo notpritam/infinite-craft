@@ -1,0 +1,267 @@
+[
+  {
+    "element1": "💧 Water",
+    "element2": "🔥 Fire",
+    "result": "🌫️ Steam"
+  },
+  {
+    "element1": "💧 Water",
+    "element2": "💨 Wind",
+    "result": "🌊 Wave"
+  },
+  {
+    "element1": "💧 Water",
+    "element2": "🌍 Earth",
+    "result": "🌱 Plant"
+  },
+  {
+    "element1": "🔥 Fire",
+    "element2": "🌍 Earth",
+    "result": "🌋 Volcano"
+  },
+  {
+    "element1": "🔥 Fire",
+    "element2": "💨 Wind",
+    "result": "🔥 Wildfire"
+  },
+  {
+    "element1": "💨 Wind",
+    "element2": "🌍 Earth",
+    "result": "🏜️ Desert"
+  },
+  {
+    "element1": "💧 Water",
+    "element2": "🌫️ Steam",
+    "result": "☁️ Cloud"
+  },
+  {
+    "element1": "☁️ Cloud",
+    "element2": "💧 Water",
+    "result": "🌧️ Rain"
+  },
+  {
+    "element1": "☁️ Cloud",
+    "element2": "🔥 Fire",
+    "result": "💨 Smoke"
+  },
+  {
+    "element1": "☁️ Cloud",
+    "element2": "💨 Wind",
+    "result": "🌪️ Tornado"
+  },
+  {
+    "element1": "☁️ Cloud",
+    "element2": "🌍 Earth",
+    "result": "🌁 Fog"
+  },
+  {
+    "element1": "🌧️ Rain",
+    "element2": "🔥 Fire",
+    "result": "🌈 Rainbow"
+  },
+  {
+    "element1": "🌧️ Rain",
+    "element2": "💨 Wind",
+    "result": "🌀 Cyclone"
+  },
+  {
+    "element1": "🌧️ Rain",
+    "element2": "🌍 Earth",
+    "result": "💦 Mud"
+  },
+  {
+    "element1": "💦 Mud",
+    "element2": "🔥 Fire",
+    "result": "🧱 Clay"
+  },
+  {
+    "element1": "🌧️ Rain",
+    "element2": "🌀 Cyclone",
+    "result": "🌊 Hurricane"
+  },
+  {
+    "element1": "💧 Water",
+    "element2": "🌀 Cyclone",
+    "result": "🌊 Hurricane"
+  },
+  {
+    "element1": "🌁 Fog",
+    "element2": "🔥 Fire",
+    "result": "💨 Smoke"
+  },
+  {
+    "element1": "🌁 Fog",
+    "element2": "💨 Wind",
+    "result": "☁️ Cloud"
+  },
+  {
+    "element1": "🌁 Fog",
+    "element2": "🌍 Earth",
+    "result": "🏔️ Mountain"
+  },
+  {
+    "element1": "💧 Water",
+    "element2": "❄️ Cold",
+    "result": "🧊 Ice"
+  },
+  {
+    "element1": "🧊 Ice",
+    "element2": "💧 Water",
+    "result": "🧊 Iceberg"
+  },
+  {
+    "element1": "🧊 Ice",
+    "element2": "🌍 Earth",
+    "result": "❄️ Snow"
+  },
+  {
+    "element1": "❄️ Snow",
+    "element2": "🧊 Ice",
+    "result": "☃️ Snowman"
+  },
+  {
+    "element1": "☃️ Snowman",
+    "element2": "🌍 Earth",
+    "result": "⛄ Abominable Snowman"
+  },
+  {
+    "element1": "🧊 Ice",
+    "element2": "🔥 Fire",
+    "result": "💧 Water"
+  },
+  {
+    "element1": "🧊 Ice",
+    "element2": "💨 Wind",
+    "result": "❄️ Snow"
+  },
+  {
+    "element1": "🧊 Iceberg",
+    "element2": "🐦 Bird",
+    "result": "🐧 Penguin"
+  },
+  {
+    "element1": "🐧 Penguin",
+    "element2": "🧱 Clay",
+    "result": "🐧 Penguin Statue"
+  },
+  {
+    "element1": "🐧 Penguin",
+    "element2": "🏺 Pottery",
+    "result": "🐧 Penguin Vase"
+  },
+  {
+    "element1": "🌍 Earth",
+    "element2": "💧 Water",
+    "result": "🌱 Plant"
+  },
+  {
+    "element1": "🌱 Plant",
+    "element2": "💧 Water",
+    "result": "🌲 Tree"
+  },
+  {
+    "element1": "🌱 Plant",
+    "element2": "💦 Mud",
+    "result": "🚣 Swamp"
+  },
+  {
+    "element1": "🚣 Swamp",
+    "element2": "🐦 Bird",
+    "result": "🐊 Alligator"
+  },
+  {
+    "element1": "🐊 Alligator",
+    "element2": "🌍 Earth",
+    "result": "🐊 Crocodile"
+  },
+  {
+    "element1": "🔥 Fire",
+    "element2": "🍖 Meat",
+    "result": "🍗 Barbecue"
+  },
+  {
+    "element1": "🍗 Barbecue",
+    "element2": "💧 Water",
+    "result": "🥘 Soup"
+  },
+  {
+    "element1": "🥘 Soup",
+    "element2": "🏺 Pottery",
+    "result": "🍲 Crockpot"
+  },
+  {
+    "element1": "🌍 Earth",
+    "element2": "🔥 Fire",
+    "result": "🌋 Volcano"
+  },
+  {
+    "element1": "🌋 Volcano",
+    "element2": "🔥 Fire",
+    "result": "🌋 Lava"
+  },
+  {
+    "element1": "🌋 Lava",
+    "element2": "🌍 Earth",
+    "result": "🪨 Stone"
+  },
+  {
+    "element1": "🪨 Stone",
+    "element2": "🌋 Volcano",
+    "result": "🪨 Rock"
+  },
+  {
+    "element1": "🏔️ Mountain",
+    "element2": "🏔️ Mountain",
+    "result": "⛰️ Mountain Range"
+  },
+  {
+    "element1": "⛰️ Mountain Range",
+    "element2": "🐴 Horse",
+    "result": "🦄 Pegasus"
+  },
+  {
+    "element1": "🦄 Pegasus",
+    "element2": "🔥 Fire",
+    "result": "🦄 Unicorn"
+  },
+  {
+    "element1": "🌧️ Rain",
+    "element2": "❄️ Snow",
+    "result": "💧 Sleet"
+  },
+  {
+    "element1": "🌍 Earth",
+    "element2": "💨 Wind",
+    "result": "💨 Dust"
+  },
+  {
+    "element1": "💨 Dust",
+    "element2": "💨 Wind",
+    "result": "🌪️ Dust Storm"
+  },
+  {
+    "element1": "🌪️ Dust Storm",
+    "element2": "🌧️ Rain",
+    "result": "⛈️ Storm"
+  },
+  {
+    "element1": "☁️ Cloud",
+    "element2": "😢 Sad",
+    "result": "😢 Tears"
+  },
+  {
+    "element1": "💧 Water",
+    "element2": "🔥 Fire",
+    "result": "🌫️ Steam"
+  },
+  {
+    "element1": "🌫️ Steam",
+    "element2": "💨 Wind",
+    "result": "🌁 Mist"
+  },
+  {
+    "element1": "🐴 Horse",
+    "element2": "🦄 Unicorn",
+    "result": "🦄 Pegasus"
+  }
+]
