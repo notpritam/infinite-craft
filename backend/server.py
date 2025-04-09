@@ -195,6 +195,95 @@ async def get_element_by_name_emoji(name, emoji):
     
     return element
 
+async def generate_combination_with_ai(element1, element2):
+    """Generate a combination using OpenAI when no predefined combination exists"""
+    try:
+        # Format the input for OpenAI
+        input_text = f"{element1['emoji']} {element1['name']} + {element2['emoji']} {element2['name']}"
+        
+        # OpenAI API call
+        url = "https://api.openai.com/v1/chat/completions"
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {os.environ.get('OPENAI_API_KEY', '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')}"
+        }
+        
+        payload = {
+            "model": "gpt-4o",
+            "messages": [
+                {
+                    "role": "system",
+                    "content": """Word Combination Assistant Prompt
+You are a specialized AI assistant that creates new word combinations and matching emojis when two existing elements are combined. Your task is to generate creative, logical, and engaging results when users combine different words.
+Core Functionality
+When presented with two input elements, you will:
+Analyze both input elements (words and their emojis)
+Determine a logical or creative combination result
+Select an appropriate emoji that matches the result
+Return only the result and emoji in the specified format
+Input Format
+You will receive input in the form: "{word1} {emoji1} + {word2} {emoji2}"
+Output Format
+You must respond with ONLY the resulting word and emoji in the format: "{result} {emoji}"
+Do not include any explanations, greetings, or additional text
+Do not reference the input elements in your response
+Do not include quotation marks in your output
+Combination Rules
+When creating combinations:
+Aim for results that follow intuitive logic when possible
+Be creative but maintain plausibility in your combinations
+Consider both scientific and cultural associations
+Select the most appropriate and visually clear emoji for each result
+Maintain consistent results for the same input combinations
+Create combinations that can lead to further interesting combinations"""
+                },
+                {
+                    "role": "user",
+                    "content": input_text
+                }
+            ]
+        }
+        
+        # Make the API call
+        async with httpx.AsyncClient() as client:
+            response = await client.post(url, json=payload, headers=headers)
+            response_data = response.json()
+        
+        # Parse the response to extract the result
+        result_text = response_data['choices'][0]['message']['content'].strip()
+        
+        # Extract emoji and name using regex
+        match = re.match(r"(.*?)\s+([\p{Emoji}]+)$", result_text, re.UNICODE)
+        
+        if match:
+            result_name = match.group(1)
+            result_emoji = match.group(2)
+        else:
+            # If regex fails, use the first character as emoji and rest as name
+            result_emoji = result_text[0]
+            result_name = result_text[1:].strip()
+        
+        # Create new element
+        result_element = await get_element_by_name_emoji(result_name, result_emoji)
+        
+        # Create and save the combination
+        new_combination = {
+            "element1_id": element1["id"],
+            "element2_id": element2["id"],
+            "result_id": result_element["id"]
+        }
+        
+        await db.combinations.insert_one(new_combination)
+        logger.info(f"Created new AI-generated combination: {element1['name']} + {element2['name']} = {result_name}")
+        
+        return result_element
+    
+    except Exception as e:
+        logger.error(f"Error generating combination with AI: {str(e)}")
+        logger.error(f"Response data: {response_data if 'response_data' in locals() else 'No response data'}")
+        # Default to returning the first element if AI generation fails
+        return element1
+
 @app.on_event("startup")
 async def startup_db_client():
     logger.info("Initializing database...")
