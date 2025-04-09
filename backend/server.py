@@ -401,9 +401,9 @@ async def combine_elements(combination: CombinationRequest, user_id: str = "defa
                     success=False,
                     message="These elements cannot be combined"
                 )
-        
-        # Get the result element
-        result_element = await db.elements.find_one({"id": combination_result["result_id"]})
+        else:
+            # Get the result element if we found a predefined combination
+            result_element = await db.elements.find_one({"id": combination_result["result_id"]})
         
         if not result_element:
             logger.error(f"Result element not found: {combination_result['result_id']}")
