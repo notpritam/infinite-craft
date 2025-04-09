@@ -326,8 +326,10 @@ function App() {
       });
 
       const data = await response.json();
+      console.log("Combination result data:", data);
 
       if (data.success) {
+        console.log("Successful combination:", data.result);
         // Show success animation/message
         setCombinationResult({
           success: true,
@@ -337,6 +339,7 @@ function App() {
             y: targetElement.position.y,
           },
         });
+        console.log("Setting showResult to true");
         setShowResult(true);
 
         // Clear previous timeout if it exists
