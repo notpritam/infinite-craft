@@ -135,6 +135,7 @@ function App() {
     try {
       const response = await fetch(`${BACKEND_URL}/api/elements/base`);
       const data = await response.json();
+      console.log("Raw base elements data:", data);
       setBaseElements(data);
     } catch (error) {
       console.error("Error fetching base elements:", error);
