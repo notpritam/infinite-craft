@@ -109,7 +109,7 @@ async def init_db():
     
     # Load combinations from JSON
     try:
-        combinations_path = Path("/app/data/combinations.json")
+        combinations_path = Path("../../data/combinations.json")
         if combinations_path.exists():
             with open(combinations_path, 'r') as f:
                 combinations_data = json.load(f)
